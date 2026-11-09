@@ -31,6 +31,48 @@ tu equipo», pulse «Más información» y «Ejecutar de todas formas» (el .exe
 6. **Retroalimentación:** jefatura devuelve a cada especialista el estado de sus ofertas con
    *Devolver retroalimentación*; el especialista la carga con *Recibir retroalimentación*.
 
+## Compartir paquetes por carpeta común
+
+Todo el equipo puede usar una misma carpeta en lugar de mandar archivos por correo.
+Sirve con: carpeta de red (Windows), OneDrive, Google Drive (con escritorio remoto),
+Dropbox o un USB.
+
+**Preparación (una sola vez):**
+
+1. Elija la carpeta común. En una red de Windows, por ejemplo
+   `\SERVIDOR\CRM_GroupEJ`; con OneDrive/Google Drive, la carpeta sincronizada
+   (por ejemplo `C:\Users\su_usuario\OneDrive - Empresa\CRM_GroupEJ`).
+2. Comparta esa ruta con todos los especialistas y con jefatura.
+3. Cada persona, en su propio PC, abre la aplicación y configura una sola vez:
+   **Sincronización > Carpeta compartida del equipo...** y selecciona esa carpeta.
+
+**Uso diario:**
+
+1. **Especialista:** al usar *Enviar a jefatura*, la aplicación ofrece guardar el paquete
+   directamente en la subcarpeta `paquetes` de la carpeta compartida (evita el paso del
+   correo). El archivo incluye su nombre y la fecha/hora, así que no se pisa con el de
+   otro especialista.
+2. **Jefatura:** *Sincronización > (Jefatura) Importar desde la carpeta compartida...*
+   importa **todos** los paquetes pendientes de una sola vez, en orden.
+3. **Retroalimentación:** cuando jefatura genera retroalimentación, se deja además una
+   copia en la subcarpeta `retroalimentaciones`; el especialista la carga con
+   *Recibir retroalimentación* (el diálogo ya abre en esa carpeta).
+
+Estructura resultante de la carpeta compartida:
+
+```
+CRM_GroupEJ/
+├── paquetes/                <- aquí dejan los especialistas
+│   ├── Paquete_Comercial_01_20261109_1720.json
+│   └── Paquete_Comercial_02_20261109_1805.json
+└── retroalimentaciones/      <- aquí deja jefatura
+    └── Retro_Comercial_01_20261109.json
+```
+
+Consejos: importen los paquetes con frecuencia (idealmente diario); después de importar,
+jefatura puede mover los archivos ya procesados a una subcarpeta `paquetes/procesados`
+para que no se mezclen con los nuevos; no edite los archivos .json a mano.
+
 ## Excel
 
 Excel ya no es necesario para operar. Sigue disponible para:

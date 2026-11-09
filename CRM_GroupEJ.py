@@ -2212,6 +2212,9 @@ class App(tk.Tk):
         s.add_separator()
         s.add_command(label="(Jefatura) Importar paquetes de especialistas...", command=self.importar_paquetes)
         s.add_command(label="(Jefatura) Importar todos los paquetes de una carpeta...", command=self.importar_carpeta)
+        s.add_command(label="(Jefatura) Importar desde la carpeta compartida...", command=lambda: self.importar_carpeta(compartida=True))
+        s.add_separator()
+        s.add_command(label="Carpeta compartida del equipo...", command=self.config_carpeta)
         s.add_command(label="(Jefatura) Exportar retroalimentación a un especialista...", command=self.exportar_retro)
         m.add_cascade(label="Sincronización", menu=s)
         h = tk.Menu(m, tearoff=0)
@@ -2555,27 +2558,48 @@ class App(tk.Tk):
         carpeta = os.path.join(data_dir(), "paquetes_enviados")
         os.makedirs(carpeta, exist_ok=True)
         fn = f"Paquete_{self.user.replace(' ', '_')}_{datetime.datetime.now():%Y%m%d_%H%M}.json"
-        dest = filedialog.asksaveasfilename(title="Guardar paquete para jefatura", initialdir=carpeta,
-                                            initialfile=fn, defaultextension=".json",
-                                            filetypes=[("Paquete CRM", "*.json")], parent=self)
-        if not dest:
-            return
+        compartida = self.cfg.get("carpeta_compartida")
+        dest = None
+        if compartida and messagebox.askyesno(APP_NAME,
+                "¿Guardar el paquete directamente en la carpeta compartida del equipo?\n\n" +
+                compartida + "\n\n(Si responde «No», se abrirá el diálogo para elegir otra ubicación.)"):
+            sub = os.path.join(compartida, "paquetes")
+            try:
+                os.makedirs(sub, exist_ok=True)
+                dest = os.path.join(sub, fn)
+            except Exception as e:
+                messagebox.showwarning(APP_NAME, f"No se pudo escribir en la carpeta compartida:\n{e}")
+        if dest is None:
+            dest = filedialog.asksaveasfilename(title="Guardar paquete para jefatura", initialdir=carpeta,
+                                                initialfile=fn, defaultextension=".json",
+                                                filetypes=[("Paquete CRM", "*.json")], parent=self)
+            if not dest:
+                return
         write_json(pkg, dest)
         save_snapshot(self.store.path, self.store.hojas)
         detalle = "\n".join(f"  • {SHEET_LABEL.get(k, k)}: {len(v['nuevas'])} nuevas, {len(v['modificadas'])} modificadas"
                             for k, v in pkg["cambios"].items()) or "  • Sin cambios desde el último envío."
         self.set_status(f"Paquete generado: {os.path.basename(dest)}")
+        aviso = ("El paquete quedó en la carpeta compartida; jefatura ya puede importarlo con "
+                 "«(Jefatura) Importar desde la carpeta compartida»." if compartida and dest.startswith(compartida)
+                 else "Envíe ese archivo a jefatura (correo, mensajería o USB).")
         messagebox.showinfo(APP_NAME, "PAQUETE LISTO PARA ENVIAR A JEFATURA\n\n" f"Archivo:\n{dest}\n\n"
                                       f"Cambios desde el último envío:\n{detalle}\n\n"
-                                      f"Total: {tot_n} nuevas, {tot_m} modificadas.\n\n"
-                                      "Envíe ese archivo a jefatura (correo, mensajería o USB).")
+                                      f"Total: {tot_n} nuevas, {tot_m} modificadas.\n\n" + aviso)
         open_file(os.path.dirname(dest))
 
     def importar_retro(self):
         if self.role != "especialista":
             messagebox.showinfo(APP_NAME, "Esta opción es para especialistas.")
             return
+        compartida = self.cfg.get("carpeta_compartida")
+        inicial = None
+        if compartida:
+            sub = os.path.join(compartida, "retroalimentaciones")
+            if os.path.isdir(sub):
+                inicial = sub
         path = filedialog.askopenfilename(title="Archivo de retroalimentación de jefatura",
+                                          initialdir=inicial,
                                           filetypes=[("Retroalimentación", "*.json")], parent=self)
         if not path:
             return
@@ -2603,17 +2627,49 @@ class App(tk.Tk):
         if self.role != "jefatura":
             messagebox.showinfo(APP_NAME, "Esta opción es para jefatura.")
             return
-        paths = filedialog.askopenfilenames(title="Paquetes de especialistas",
+        compartida = self.cfg.get("carpeta_compartida")
+        inicial = None
+        if compartida:
+            sub = os.path.join(compartida, "paquetes")
+            if os.path.isdir(sub):
+                inicial = sub
+        paths = filedialog.askopenfilenames(title="Paquetes de especialistas", initialdir=inicial,
                                             filetypes=[("Paquete CRM", "*.json")], parent=self)
         self._import_paths(paths)
 
-    def importar_carpeta(self):
+    def config_carpeta(self):
+        """Define la carpeta común (red, OneDrive, Google Drive o USB) que todo el equipo usa para intercambiar paquetes."""
+        d = filedialog.askdirectory(title="Carpeta compartida del equipo (red, OneDrive, Google Drive o USB)",
+                                    parent=self)
+        if not d:
+            return
+        self.cfg["carpeta_compartida"] = d
+        save_config(self.cfg)
+        self.set_status(f"Carpeta compartida del equipo: {d}")
+        messagebox.showinfo(APP_NAME, "CARPETA COMPARTIDA GUARDADA\n\n" + d +
+                            "\n\n• Especialistas: al usar «Enviar a jefatura» se les ofrecerá dejar el paquete "
+                            "directamente en la subcarpeta «paquetes».\n"
+                            "• Jefatura: use «(Jefatura) Importar desde la carpeta compartida» para consolidar todos "
+                            "los paquetes de una vez.\n"
+                            "• Las retroalimentaciones se guardarán en la subcarpeta «retroalimentaciones».")
+
+    def importar_carpeta(self, compartida=False):
         if self.role != "jefatura":
             messagebox.showinfo(APP_NAME, "Esta opción es para jefatura.")
             return
-        d = filedialog.askdirectory(title="Carpeta con los paquetes de los especialistas", parent=self)
+        if compartida:
+            d = self.cfg.get("carpeta_compartida")
+            if not d:
+                messagebox.showinfo(APP_NAME, "Todavía no se ha configurado la carpeta compartida.\n\n"
+                                              "Use Sincronización > Carpeta compartida del equipo...")
+                return
+        else:
+            d = filedialog.askdirectory(title="Carpeta con los paquetes de los especialistas", parent=self)
         if d:
-            self._import_paths([os.path.join(d, f) for f in sorted(os.listdir(d)) if f.lower().endswith(".json")])
+            sub = os.path.join(d, "paquetes")
+            base = sub if os.path.isdir(sub) else d
+            self._import_paths([os.path.join(base, f) for f in sorted(os.listdir(base))
+                                if f.lower().endswith(".json")])
 
     def _import_paths(self, paths):
         hechos = 0
@@ -2692,6 +2748,15 @@ class App(tk.Tk):
                                             defaultextension=".json", filetypes=[("Retroalimentación", "*.json")], parent=self)
         if dest:
             write_json(retro, dest)
+            compartida = self.cfg.get("carpeta_compartida")
+            if compartida:
+                try:
+                    sub = os.path.join(compartida, "retroalimentaciones")
+                    os.makedirs(sub, exist_ok=True)
+                    write_json(retro, os.path.join(sub, os.path.basename(dest)))
+                    self.set_status("Retroalimentación generada (copia dejada en la carpeta compartida).")
+                except Exception:
+                    pass
             messagebox.showinfo(APP_NAME, f"Archivo generado con {len(retro['ofertas'])} ofertas de {esp}.\n"
                                           f"Envíeselo para que lo reciba con «Recibir retroalimentación».")
             open_file(os.path.dirname(dest))
@@ -2840,8 +2905,10 @@ class App(tk.Tk):
                             "1. Cree su perfil (especialista o jefatura) la primera vez.\n"
                             "2. Registre clientes, oportunidades, actividades y ofertas con los botones «+» del panel "
                             "o desde cada módulo. Todo se guarda solo.\n"
-                            "3. ESPECIALISTA: al final del día use «Enviar a jefatura» y mande el archivo generado.\n"
-                            "4. JEFATURA: use «Importar paquetes», resuelva conflictos y revise las ofertas.\n"
+                            "3. ESPECIALISTA: al final del día use «Enviar a jefatura» y mande el archivo generado "
+                            "(o déjelo en la carpeta compartida del equipo: Sincronización > Carpeta compartida).\n"
+                            "4. JEFATURA: use «Importar paquetes» o «Importar desde la carpeta compartida», "
+                            "resuelva conflictos y revise las ofertas.\n"
                             "5. Para trabajar en Excel: Archivo > Exportar TODO el CRM a un libro Excel.\n"
                             "6. Para cargar datos que ya tenga en Excel: Archivo > Importar datos desde Excel.")
 
