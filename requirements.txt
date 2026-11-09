@@ -1,0 +1,3 @@
+# Solo si instalan por internet; la carpeta libs/ ya incluye todo
+# y no hace falta instalar nada.
+openpyxl>=3.1
