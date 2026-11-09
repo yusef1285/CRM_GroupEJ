@@ -16,9 +16,9 @@ Power Query si algún día quieren usarlo).
    https://www.python.org/downloads/ — en Windows marcar la casilla
    **"Add Python to PATH"**).
 2. Descargar la aplicación:
-   - **Opción A (recomendada)**: en GitHub, sección **Releases**, descargar el
-     archivo `CRM_GroupEJ.zip` y descomprimirlo en el PC (por ejemplo en
-     `C:\CRM_GroupEJ`).
+   - **Opción A (recomendada)**: en GitHub, descargar el archivo
+     `CRM_GroupEJ.zip` que está en la carpeta raíz del repositorio y
+     descomprimirlo en el PC (por ejemplo en `C:\CRM_GroupEJ`).
    - **Opción B**: clonar el repositorio con
      `git clone <url-del-repositorio>`.
 3. Doble clic en **`Iniciar_CRM.bat`** (Windows) o ejecutar
