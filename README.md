@@ -15,8 +15,12 @@ Power Query si algún día quieren usarlo).
 1. Tener instalado **Python 3.10 o superior** (se descarga una sola vez desde
    https://www.python.org/downloads/ — en Windows marcar la casilla
    **"Add Python to PATH"**).
-2. Copiar la carpeta completa de la aplicación a cualquier ubicación del PC
-   (por ejemplo `C:\CRM_GroupEJ`).
+2. Descargar la aplicación:
+   - **Opción A (recomendada)**: en GitHub, sección **Releases**, descargar el
+     archivo `CRM_GroupEJ.zip` y descomprimirlo en el PC (por ejemplo en
+     `C:\CRM_GroupEJ`).
+   - **Opción B**: clonar el repositorio con
+     `git clone <url-del-repositorio>`.
 3. Doble clic en **`Iniciar_CRM.bat`** (Windows) o ejecutar
    `./Iniciar_CRM.sh` (Linux/Mac).
 
@@ -86,6 +90,15 @@ nada más ni tener internet.**
   para devolverle a cada comercial el estado de sus ofertas (aprobada,
   modificaciones solicitadas, observaciones, etc.).
 
+### Exportar a Excel
+- **En cualquier tabla**: botón "Exportar a Excel" genera un archivo .xlsx
+  independiente de esa hoja, con encabezados con color, filtros automáticos,
+  panel congelado y columnas ajustadas (ideal para compartir o imprimir).
+- **En el panel**: "Exportar informe a Excel" genera un informe con el resumen
+  de indicadores, la lista de seguimientos vencidos y las ofertas pendientes
+  de revisión.
+- La aplicación abre el archivo exportado automáticamente si usted lo desea.
+
 ---
 
 ## 3. Reglas de consolidación (coinciden con la guía interna del Excel)
@@ -145,6 +158,8 @@ limitar el acceso.
 | `Plantilla_Libro_Individual.xlsx` | Plantilla para nuevos especialistas |
 | `Plantilla_Maestro_Jefatura.xlsx` | Plantilla del libro maestro |
 | `libs/` | Librerías incluidas (openpyxl), no requiere internet |
+| `requirements.txt` | Solo necesario si prefieren instalar openpyxl por internet |
+| `.gitignore` | Archivos auxiliares que no se suben al repositorio |
 | `README.md` | Este manual |
 
 *CRM INTEGRAL | GROUP EJ MORALES S.U.R.L.*
