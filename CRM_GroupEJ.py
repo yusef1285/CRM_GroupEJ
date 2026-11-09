@@ -23,9 +23,22 @@ import traceback
 
 # --- openpyxl incluida localmente (carpeta libs) --------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-LIBS = os.path.join(BASE_DIR, "libs")
-if os.path.isdir(LIBS) and LIBS not in sys.path:
-    sys.path.insert(0, LIBS)
+FROZEN = getattr(sys, "frozen", False)   # True cuando se ejecuta como .exe
+
+def resource_path(rel):
+    """Ruta a recursos (plantillas) incluidos dentro del .exe o junto al script."""
+    if FROZEN:
+        # primero junto al ejecutable, luego dentro del paquete
+        junto = os.path.join(os.path.dirname(sys.executable), rel)
+        if os.path.exists(junto):
+            return junto
+        return os.path.join(getattr(sys, "_MEIPASS", BASE_DIR), rel)
+    return os.path.join(BASE_DIR, rel)
+
+if not FROZEN:
+    LIBS = os.path.join(BASE_DIR, "libs")
+    if os.path.isdir(LIBS) and LIBS not in sys.path:
+        sys.path.insert(0, LIBS)
 
 import openpyxl
 from openpyxl.styles import Font, PatternFill
@@ -663,7 +676,7 @@ class App(tk.Tk):
 
     def new_book(self):
         plantilla = "Plantilla_Libro_Individual.xlsx" if self.role == "especialista" else "Plantilla_Maestro_Jefatura.xlsx"
-        src = os.path.join(BASE_DIR, plantilla)
+        src = resource_path(plantilla)
         if not os.path.exists(src):
             messagebox.showerror(APP_NAME, f"No se encontró la plantilla:\n{src}")
             return

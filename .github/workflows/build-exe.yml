@@ -1,0 +1,61 @@
+name: Compilar EXE para Windows
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Etiqueta del release (ej. v1.1)"
+        required: true
+        default: "v1.1"
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+
+      - name: Instalar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar PyInstaller
+        run: pip install pyinstaller openpyxl
+
+      - name: Compilar CRM_GroupEJ.exe
+        run: >
+          pyinstaller --noconfirm --clean --onefile --noconsole
+          --name CRM_GroupEJ
+          --add-data "Plantilla_Libro_Individual.xlsx;."
+          --add-data "Plantilla_Maestro_Jefatura.xlsx;."
+          CRM_GroupEJ.py
+
+      - name: Verificar ejecutable
+        run: |
+          if (-Not (Test-Path "dist/CRM_GroupEJ.exe")) { exit 1 }
+          (Get-Item "dist/CRM_GroupEJ.exe").Length
+
+      - name: Publicar en el release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+        shell: bash
+        run: |
+          mv dist/CRM_GroupEJ.exe ./CRM_GroupEJ.exe
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" CRM_GroupEJ.exe --clobber
+          else
+            gh release create "$TAG" CRM_GroupEJ.exe \
+              --title "CRM Group EJ Morales $TAG" \
+              --notes "Versión de escritorio para Windows (no requiere Python instalado).
+
+          - Descargar CRM_GroupEJ.exe y hacer doble clic para ejecutar.
+          - Si Windows SmartScreen advierte por primera vez: 'Más información' > 'Ejecutar de todas formas' (es normal en ejecutables nuevos).
+          - También disponible CRM_GroupEJ.zip (versión Python) en la raíz del repositorio."
+          fi

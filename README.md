@@ -16,16 +16,23 @@ Power Query si algún día quieren usarlo).
    https://www.python.org/downloads/ — en Windows marcar la casilla
    **"Add Python to PATH"**).
 2. Descargar la aplicación:
-   - **Opción A (recomendada)**: en GitHub, descargar el archivo
-     `CRM_GroupEJ.zip` que está en la carpeta raíz del repositorio y
-     descomprimirlo en el PC (por ejemplo en `C:\CRM_GroupEJ`).
-   - **Opción B**: clonar el repositorio con
-     `git clone <url-del-repositorio>`.
-3. Doble clic en **`Iniciar_CRM.bat`** (Windows) o ejecutar
-   `./Iniciar_CRM.sh` (Linux/Mac).
+   - **Opción A (recomendada, Windows)**: en GitHub, sección **Releases**,
+     descargar **`CRM_GroupEJ.exe`** y hacer doble clic para ejecutar.
+     No requiere instalar nada más (ni siquiera Python).
+   - **Opción B**: descargar el archivo `CRM_GroupEJ.zip` que está en la
+     carpeta raíz del repositorio, descomprimirlo (por ejemplo en
+     `C:\CRM_GroupEJ`) y ejecutar `Iniciar_CRM.bat`.
+   - **Opción C**: clonar el repositorio con `git clone <url-del-repositorio>`.
+3. En Windows con la opción A solo es doble clic; con la opción B es
+   **`Iniciar_CRM.bat`** y en Linux/Mac `./Iniciar_CRM.sh`.
 
 La carpeta `libs` ya incluye todo lo necesario (openpyxl). **No hay que instalar
 nada más ni tener internet.**
+
+> **Nota sobre SmartScreen**: al ejecutar `CRM_GroupEJ.exe` por primera vez,
+> Windows puede mostrar "Windows protegió tu equipo". Es normal en ejecutables
+> sin firma digital. Haga clic en **"Más información"** y luego en
+> **"Ejecutar de todas formas"**.
 
 ---
 
