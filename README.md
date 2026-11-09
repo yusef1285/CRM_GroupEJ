@@ -1,172 +1,53 @@
-# CRM INTEGRAL | GROUP EJ MORALES S.U.R.L. — Aplicación de escritorio
+# CRM INTEGRAL | GROUP EJ MORALES S.U.R.L. — v2.0
 
-Aplicación de escritorio para que cada **especialista (comercial)** trabaje su libro
-individual de CRM y envíe su información actualizada a **jefatura**, quien la
-**consolida diariamente** en el libro maestro y revisa las ofertas.
+CRM de escritorio para Windows. **Los datos se introducen directamente en la aplicación**
+(no hace falta abrir Excel). Cada especialista trabaja de forma individual y envía su
+información actualizada a jefatura, que la consolida cada día.
 
-No requiere internet y trabaja directamente sobre los libros Excel existentes,
-manteniendo los nombres de hojas y encabezados (sigue siendo compatible con
-Power Query si algún día quieren usarlo).
+## Descarga (Windows)
 
----
+[CRM_GroupEJ.exe — última versión](https://github.com/yusef1285/CRM_GroupEJ/releases/latest/download/CRM_GroupEJ.exe)
 
-## 1. Requisitos e instalación
+No requiere instalar nada. Doble clic para abrir. Si Windows muestra «Windows protegió
+tu equipo», pulse «Más información» y «Ejecutar de todas formas» (el .exe no está firmado).
 
-1. Tener instalado **Python 3.10 o superior** (se descarga una sola vez desde
-   https://www.python.org/downloads/ — en Windows marcar la casilla
-   **"Add Python to PATH"**).
-2. Descargar la aplicación:
-   - **Opción A (recomendada, Windows)**: en GitHub, sección **Releases**,
-     descargar **`CRM_GroupEJ.exe`** y hacer doble clic para ejecutar.
-     No requiere instalar nada más (ni siquiera Python).
-   - **Opción B**: descargar el archivo `CRM_GroupEJ.zip` que está en la
-     carpeta raíz del repositorio, descomprimirlo (por ejemplo en
-     `C:\CRM_GroupEJ`) y ejecutar `Iniciar_CRM.bat`.
-   - **Opción C**: clonar el repositorio con `git clone <url-del-repositorio>`.
-3. En Windows con la opción A solo es doble clic; con la opción B es
-   **`Iniciar_CRM.bat`** y en Linux/Mac `./Iniciar_CRM.sh`.
+## Cómo funciona
 
-La carpeta `libs` ya incluye todo lo necesario (openpyxl). **No hay que instalar
-nada más ni tener internet.**
+1. **Primer uso: crear un perfil.** Elija *Especialista* o *Jefatura*, escriba su nombre y un
+   código corto (por ejemplo `C01`). El código forma parte de los identificadores
+   (`CLI-C01-0001`, `OFE-C01-0004`) para que nunca se repitan entre especialistas.
+2. **Trabajar como en un CRM real.** Menú lateral con los módulos: Comercial, Proveedores y
+   compras, Importaciones, Operaciones, Gestión. En cada uno: nuevo, editar, eliminar, buscar,
+   filtrar y ordenar. Los formularios traen listas desplegables, fechas con «Hoy/Ahora»,
+   selección de clientes/proveedores existentes y cálculos automáticos (por ejemplo
+   Importe = Cantidad × Precio). Todo se guarda al instante.
+3. **Panel de control:** indicadores, agenda de seguimientos vencidos y próximos, ofertas
+   pendientes y actividad reciente. En el cliente, la **ficha 360°** reúne todo su historial.
+4. **Enviar a jefatura (especialista):** *Enviar a jefatura* genera un paquete con lo nuevo o
+   modificado desde el último envío. Se manda por correo o carpeta compartida.
+5. **Consolidar (jefatura):** *Importar paquetes* (uno o una carpeta completa). Se evitan
+   duplicados por ID, los conflictos se resuelven campo por campo y las ofertas pasan por
+   revisión de jefatura (y autorización de Dirección cuando aplique).
+6. **Retroalimentación:** jefatura devuelve a cada especialista el estado de sus ofertas con
+   *Devolver retroalimentación*; el especialista la carga con *Recibir retroalimentación*.
 
-> **Nota sobre SmartScreen**: al ejecutar `CRM_GroupEJ.exe` por primera vez,
-> Windows puede mostrar "Windows protegió tu equipo". Es normal en ejecutables
-> sin firma digital. Haga clic en **"Más información"** y luego en
-> **"Ejecutar de todas formas"**.
+## Excel
 
----
+Excel ya no es necesario para operar. Sigue disponible para:
+- **Exportar** cualquier módulo o **todo el CRM** a un libro .xlsx (menú Archivo).
+- **Importar** datos existentes desde sus libros Excel actuales (Archivo → Importar).
 
-## 2. Flujo de trabajo diario
+## Datos y respaldos
+
+Los datos viven en una base local SQLite en `%APPDATA%\CRM_GroupEJ` (Archivo → Abrir carpeta de
+datos). La aplicación crea respaldos automáticos al abrir un perfil y bajo demanda.
+
+## Desarrollo
 
 ```
-   ESPECIALISTA (cada comercial)                    JEFATURA
-   ─────────────────────────────                    ─────────────────────────
-   1. Abre su libro individual               1. Abre el libro maestro
-   2. Registra clientes, oportunidades,      2. "Importar paquete..."
-      ofertas, actividades, etc.                recibe los archivos que
-   3. Guarda                                    le enviaron los comerciales
-   4. "Enviar a jefatura"                     3. Resuelve conflictos si los hay
-      genera un archivo Paquete_...json      4. El maestro queda consolidado
-      y se lo envía a la jefa                  y se registra en LOG_CONSOLIDACION
-      (correo, USB, etc.)                    5. Revisa y aprueba ofertas
-                                            6. "Exportar retroalimentación"
-                                               (opcional) para devolver a cada
-                                               especialista el estado de sus
-                                               ofertas
+pip install openpyxl
+python CRM_GroupEJ.py                 # ejecutar
+python CRM_GroupEJ.py --selftest out.txt   # pruebas internas
 ```
 
-### Rol ESPECIALISTA
-- **Abrir libro / Nuevo libro**: al crear uno nuevo se copia la plantilla
-  oficial `Plantilla_Libro_Individual.xlsx` (se sugiere nombrarlo
-  `CRM_Comercial_02_GroupEJ_Morales.xlsx`, etc.).
-- En el menú lateral están todas las hojas del CRM (Clientes, Proveedores,
-  Prospectos, Ofertas, Importaciones, Contenedores, Ventas, Logística,
-  Facturas_Cobros, Incidencias, etc.).
-- **Nueva fila**: abre un formulario con los campos exactos de la hoja. El ID
-  se genera automáticamente (CLI-0001, OPO-0001, OFE-0001, IMP-0001, ...).
-  Los campos con catálogo (Etapa, Estado_revision, Estado de importación /
-  embarque / contenedor, Prioridad) muestran lista desplegable.
-- **Editar** (o doble clic en una fila) y **Eliminar**.
-- **Buscar** filtra la tabla por cualquier columna.
-- **Guardar** escribe los cambios en el Excel.
-- **Enviar a jefatura**: genera en la subcarpeta `Paquetes_a_Jefatura` un
-  archivo `Paquete_<nombre>_<fecha>.json` con toda su información y un resumen
-  de los cambios desde su último envío. Ese archivo es el que se envía a la
-  jefa. Guardar el libro antes de enviar es lo recomendado.
-- **Importar retroalimentación**: cuando la jefa le devuelve un archivo
-  `Retro_...json`, esta opción aplica a su libro el estado de revisión de sus
-  ofertas y observaciones de jefatura.
-
-### Rol JEFATURA
-- Abre el libro maestro (o crea uno nuevo desde `Plantilla_Maestro_Jefatura.xlsx`).
-- **Importar paquete...**: selecciona uno o varios archivos `Paquete_...json`.
-  La aplicación muestra un resumen (filas nuevas, filas a completar y
-  conflictos) y aplica la consolidación:
-  - **Filas nuevas** del especialista → se agregan al maestro.
-  - **Campos vacíos en el maestro** que el especialista sí llenó → se completan
-    automáticamente.
-  - **Conflictos** (mismo ID con datos distintos) → se abre un panel donde la
-    jefa decide caso por caso: conservar el maestro o tomar la versión del
-    especialista (también puede decidir todo de una vez).
-  - Cada consolidación queda registrada en la hoja **LOG_CONSOLIDACION** y
-    actualiza "Ultima_consolidacion" en Equipo.
-- **Panel**: indicadores (clientes, oportunidades abiertas, ofertas pendientes
-  de revisión, ventas, seguimientos vencidos), cola de ofertas que requieren su
-  revisión y registro de consolidaciones.
-- **Exportar retroalimentación**: genera un `Retro_<especialista>_<fecha>.json`
-  para devolverle a cada comercial el estado de sus ofertas (aprobada,
-  modificaciones solicitadas, observaciones, etc.).
-
-### Exportar a Excel
-- **En cualquier tabla**: botón "Exportar a Excel" genera un archivo .xlsx
-  independiente de esa hoja, con encabezados con color, filtros automáticos,
-  panel congelado y columnas ajustadas (ideal para compartir o imprimir).
-- **En el panel**: "Exportar informe a Excel" genera un informe con el resumen
-  de indicadores, la lista de seguimientos vencidos y las ofertas pendientes
-  de revisión.
-- La aplicación abre el archivo exportado automáticamente si usted lo desea.
-
----
-
-## 3. Reglas de consolidación (coinciden con la guía interna del Excel)
-
-1. Clientes se deduplican por `ID_Cliente` y Proveedores por `ID_Proveedor`.
-   Si hay diferencias para el mismo ID, la aplicación lo marca como
-   **conflicto** y no sobrescribe sin decisión de la jefa.
-2. En las tablas de movimientos se conservan todos los IDs únicos.
-3. Las hojas y encabezados se mantienen idénticos: el maestro sigue
-   funcionando con Power Query si se desea.
-4. Cada cambio marca automáticamente `Fecha_modificacion`.
-5. Las ofertas requieren revisión de jefatura antes de presentarse al cliente
-   (campo `Estado_revision` con el catálogo oficial).
-
----
-
-## 4. Preguntas frecuentes
-
-**¿Cómo viaja la información de un PC a otro?**
-Con el archivo `Paquete_...json` (es pequeño) por correo, mensajería o USB.
-La jefa lo importa con un clic. No hace falta enviar el Excel completo.
-
-**¿Puedo seguir usando Excel a la vez?**
-Sí, pero evite tener el mismo libro abierto en Excel y en la aplicación al
-mismo tiempo (Excel bloquea el archivo). La aplicación lee y escribe el mismo
-formato.
-
-**¿Qué pasa si un comercial ya envió su paquete y luego hace más cambios?**
-Simplemente genera otro paquete: la aplicación solo importará las novedades.
-
-**¿Y si dos especialistas crean el mismo ID?**
-La aplicación lo detecta al consolidar y lo presenta como conflicto para que
-la jefa decida.
-
-**¿Dónde están los archivos?**
-- Libros Excel: donde usted los guarde.
-- Paquetes del especialista: subcarpeta `Paquetes_a_Jefatura` junto a su libro.
-- Retroalimentaciones de jefatura: subcarpeta `Retroalimentaciones` junto al
-  maestro.
-- Un archivo auxiliar `<libro>.xlsx.snapshot.json` se crea junto a cada libro
-  para calcular los cambios entre envíos (no borrarlo).
-
-**¿Seguridad?**
-Como indica la guía del propio CRM, Excel no ofrece seguridad robusta por
-fila; use permisos de carpeta/archivo del sistema operativo si necesita
-limitar el acceso.
-
----
-
-## 5. Contenido de la carpeta
-
-| Archivo | Descripción |
-|---|---|
-| `CRM_GroupEJ.py` | Aplicación completa |
-| `Iniciar_CRM.bat` | Lanzador para Windows (doble clic) |
-| `Iniciar_CRM.sh` | Lanzador para Linux/Mac |
-| `Plantilla_Libro_Individual.xlsx` | Plantilla para nuevos especialistas |
-| `Plantilla_Maestro_Jefatura.xlsx` | Plantilla del libro maestro |
-| `libs/` | Librerías incluidas (openpyxl), no requiere internet |
-| `requirements.txt` | Solo necesario si prefieren instalar openpyxl por internet |
-| `.gitignore` | Archivos auxiliares que no se suben al repositorio |
-| `README.md` | Este manual |
-
-*CRM INTEGRAL | GROUP EJ MORALES S.U.R.L.*
+El ejecutable se compila con GitHub Actions (`.github/workflows/build-exe.yml`).
